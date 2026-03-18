@@ -4,7 +4,7 @@ import { open } from "sqlite";
 // функция подключения к базе SQLite
 async function openDB() {
   return open({
-    filename: "./autoparts.db", // путь к файлу базы
+    filename: "./autoosad.db", // путь к файлу базы
     driver: sqlite3.Database
   });
 }
