@@ -26,6 +26,7 @@ export default async function RootLayout({ children }) {
         >
           <Link href="/">Home</Link>
           <Link href="/protected">Secret</Link>
+          
           {!isAuth ? (
             <Link href="/login">Login</Link>
           ) : (
@@ -45,8 +46,10 @@ export default async function RootLayout({ children }) {
               >
                 Log out
               </button>
+
             </form>
           )}
+          <Link href="/otsing">Otsing</Link>
         </nav>
 
         <main>{children}</main>
