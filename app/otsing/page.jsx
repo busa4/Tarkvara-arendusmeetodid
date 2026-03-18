@@ -24,11 +24,11 @@ export default function OtsinPage() {
 
   return (
     <div style={{ padding: "20px" }}>
-      <h1>Поиск автозапчастей</h1>
+      <h1>Search Auto Parts</h1>
 
       <input
         type="text"
-        placeholder="Введите название..."
+        placeholder="Enter name..."
         value={query}
         onChange={handleSearch}
         style={{
@@ -49,7 +49,7 @@ export default function OtsinPage() {
             }}
           >
             <h3>{part.name}</h3>
-            <p>Цена: {part.price}</p>
+            <p>Price: {part.price}</p>
           </div>
         ))}
       </div>
