@@ -1,19 +1,26 @@
 "use client";
+
 import { useState, useEffect } from "react";
 
 export default function OtsinPage() {
   const [parts, setParts] = useState([]);
   const [query, setQuery] = useState("");
 
-
+  // загрузка всех запчастей при старте
   useEffect(() => {
     fetchParts();
   }, []);
 
   async function fetchParts(search = "") {
-    const res = await fetch(`/api/otsin?q=${search}`);
-    const data = await res.json();
-    setParts(data);
+    try {
+      const res = await fetch(`/api/otsin?q=${encodeURIComponent(search)}`);
+      if (!res.ok) throw new Error("Ошибка сети");
+      const data = await res.json();
+      setParts(data);
+    } catch (err) {
+      console.error("Ошибка при загрузке:", err);
+      setParts([]);
+    }
   }
 
   function handleSearch(e) {
@@ -23,7 +30,7 @@ export default function OtsinPage() {
   }
 
   return (
-    <div style={{ padding: "20px" }}>
+    <div style={{ padding: "20px", fontFamily: "Arial, sans-serif" }}>
       <h1>Поиск автозапчастей</h1>
 
       <input
@@ -34,24 +41,36 @@ export default function OtsinPage() {
         style={{
           padding: "10px",
           width: "300px",
-          marginBottom: "20px"
+          marginBottom: "20px",
+          fontSize: "16px",
+          borderRadius: "4px",
+          border: "1px solid #ccc"
         }}
       />
 
       <div>
-        {parts.map((part) => (
-          <div
-            key={part._id}
-            style={{
-              border: "1px solid #ccc",
-              padding: "10px",
-              marginBottom: "10px"
-            }}
-          >
-            <h3>{part.name}</h3>
-            <p>Цена: {part.price}</p>
-          </div>
-        ))}
+        {parts.length === 0 ? (
+          <p>Ничего не найдено</p>
+        ) : (
+          parts.map((part) => (
+            <div
+              key={part.id}
+              style={{
+                border: "1px solid #ccc",
+                padding: "10px",
+                marginBottom: "10px",
+                borderRadius: "5px",
+                boxShadow: "1px 1px 5px rgba(0,0,0,0.1)"
+              }}
+            >
+              <h3>{part.name}</h3>
+              <p>Артикул: {part.part_number}</p>
+              <p>Бренд: {part.brand}</p>
+              <p>Цена: ${part.price}</p>
+              <p>В наличии: {part.stock}</p>
+            </div>
+          ))
+        )}
       </div>
     </div>
   );
