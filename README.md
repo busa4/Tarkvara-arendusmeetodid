@@ -94,5 +94,3 @@ Ava brauseris: http://localhost:3000
 *  Täpsem filtreerimine
 
 ---
-
-Projekt on loodud hariduslikul eesmärgil.
