@@ -1,21 +1,35 @@
 import { cookies } from "next/headers";
-import Link from "next/link";
-import sqlite3 from "better-sqlite3";
 import path from "path";
-import UserSearch from "../components/UserSearch";
+import sqlite3 from "sqlite3";
+import { open } from "sqlite";
 
+async function openDB() {
+  return open({
+    filename: path.join(process.cwd(), "autoosad.db"),
+    driver: sqlite3.Database,
+  });
+}
 
 export default async function ProtectedPage() {
+  // ✅ ВАЖНО: await
   const cookieStore = await cookies();
   const session = cookieStore.get("session");
 
-  if (!session || session.value !== "abc123") {
-    return (
-      <div>
-        <p>Not auth!</p>
-        <Link href="/login">Go to login</Link>
-      </div>
-    );
+  if (!session) {
+    return <h1>Not auth! Go to login</h1>;
+  }
+
+  const db = await openDB();
+
+  const user = await db.get(
+    "SELECT id, name, email FROM users WHERE id = ?",
+    [session.value]
+  );
+
+  await db.close();
+
+  if (!user) {
+    return <h1>User not found</h1>;
   }
 
   let users = [];
@@ -34,28 +48,10 @@ export default async function ProtectedPage() {
   }
 
   return (
-    <div>
-      <h1>Secret page 🔒</h1>
-
-      {dbError && (
-        <p style={{ color: "red" }}>
-          Viga andmebaasiga: {dbError}
-        </p>
-      )}
-
-      <h2>Kasutajate nimekiri:</h2>
-
-      {users.length > 0 ? (
-        <UserSearch users={users} />
-      ) : (
-        <p>Kasutajaid ei leitud (või tabel on tühi).</p>
-      )}
-
-      <br />
-
-      <form action="/api/logout" method="POST">
-        <button type="submit">Log out</button>
-      </form>
+    <div className="min-h-screen bg-black text-white p-10">
+      <h1 className="text-3xl mb-4">Добро пожаловать</h1>
+      <p>Имя: {user.name}</p>
+      <p>Email: {user.email}</p>
     </div>
   );
 }
