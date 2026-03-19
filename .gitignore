@@ -6,3 +6,4 @@ postcss.config.mjs
 globals.css
 eslint.config.mjs
 next.config.ts
+public
