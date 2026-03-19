@@ -1,26 +1,42 @@
 import { cookies } from "next/headers";
-import Link from "next/link";
+import path from "path";
+import sqlite3 from "sqlite3";
+import { open } from "sqlite";
 
-export default async function ProtectedPage() { 
-  const cookieStore = await cookies(); 
+async function openDB() {
+  return open({
+    filename: path.join(process.cwd(), "autoosad.db"),
+    driver: sqlite3.Database,
+  });
+}
+
+export default async function ProtectedPage() {
+  // ✅ ВАЖНО: await
+  const cookieStore = await cookies();
   const session = cookieStore.get("session");
 
-  if (!session || session.value !== "abc123") {
-    return (
-      <div>
-        <p>Not auth!</p>
-        <Link href="/login">Go to login</Link>
-      </div>
-    );
+  if (!session) {
+    return <h1>Not auth! Go to login</h1>;
+  }
+
+  const db = await openDB();
+
+  const user = await db.get(
+    "SELECT id, name, email FROM users WHERE id = ?",
+    [session.value]
+  );
+
+  await db.close();
+
+  if (!user) {
+    return <h1>User not found</h1>;
   }
 
   return (
-    <div>
-      <h1>Secret page 🔒</h1>
-      <form action="/api/logout" method="POST">
-        <button type="submit">Olete siseloginud, siin on protected andmed</button>
-        <button type="submit">Log out</button>
-      </form>
+    <div className="min-h-screen bg-black text-white p-10">
+      <h1 className="text-3xl mb-4">Добро пожаловать</h1>
+      <p>Имя: {user.name}</p>
+      <p>Email: {user.email}</p>
     </div>
   );
 }
