@@ -11,18 +11,14 @@ export default function ProfilePage() {
   const [view, setView] = useState("info");
   const [showAllOrders, setShowAllOrders] = useState(false);
 
-  const user = {
-    name: "Ivan Ivanov",
-    email: "ivan@example.com",
-    phone: "+372 5555 5555"
-  };
-
-  const orders = [
-    { id: 101, item: "Piduriklotsid", price: 50 },
-    { id: 102, item: "Õlifilter", price: 15 },
-    { id: 103, item: "Õli 5W-40", price: 30 },
-    { id: 104, item: "Õhufilter", price: 20 }
-  ];
+  useEffect(() => {
+    fetch("/api/profile")
+      .then(res => res.json())
+      .then(data => {
+        setUser(data.user);
+        setOrders(data.orders); 
+      });
+  }, []);
 
   const btnClass =
     "px-4 py-2 rounded bg-blue-500 text-white hover:bg-blue-600 transition";
