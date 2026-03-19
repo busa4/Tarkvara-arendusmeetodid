@@ -5,10 +5,24 @@ export default function ChangePassword() {
   const [oldPass, setOldPass] = useState("");
   const [newPass, setNewPass] = useState("");
 
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    console.log({ oldPass, newPass });
-  };
+ const handleSubmit = async (e) => {
+  e.preventDefault();
+
+  const res = await fetch("/api/profile", {
+    method: "PATCH",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ oldPass, newPass })
+  });
+
+  const data = await res.json();
+  if (data.success) {
+    alert("Parool muudetud!");
+    setOldPass("");
+    setNewPass("");
+  } else {
+    alert(data.error || "Viga parooli muutmisel");
+  }
+};
 
   return (
     <form onSubmit={handleSubmit} className="space-y-3">

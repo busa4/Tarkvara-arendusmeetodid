@@ -32,6 +32,21 @@ export default async function ProtectedPage() {
     return <h1>User not found</h1>;
   }
 
+  let users = [];
+  let dbError = null;
+
+  try {
+    const dbPath = path.resolve(process.cwd(), "autoosad.db");
+
+    const db = new sqlite3(dbPath);
+
+    users = db.prepare("SELECT * FROM users").all();
+
+    db.close();
+  } catch (error) {
+    dbError = error.message;
+  }
+
   return (
     <div className="min-h-screen bg-black text-white p-10">
       <h1 className="text-3xl mb-4">Добро пожаловать</h1>
