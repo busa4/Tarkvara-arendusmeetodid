@@ -1,32 +1,51 @@
+export const runtime = "nodejs";
+
+import path from "path";
 import sqlite3 from "sqlite3";
+import { open } from "sqlite";
+import { NextResponse } from "next/server";
 
-export async function GET(request) {
-  const db = new sqlite3.Database("./autoosad.db");
+async function openDB() {
+  const dbPath = path.join(process.cwd(), "autoosad.db");
 
-  const { searchParams } = new URL(request.url);
-  let q = (searchParams.get("q") || "").trim();
+  return open({
+    filename: dbPath,
+    driver: sqlite3.Database,
+  });
+}
 
-  return new Promise((resolve) => {
-    let query = "SELECT * FROM parts";
-    let params = [];
+export async function POST(req) {
+  const db = await openDB();
 
-    if (q.length > 0) {
-      // Подстрочный поиск для любых частей слова, регистр игнорируется
-      query += " WHERE name LIKE ? COLLATE NOCASE";
-      params.push(`%${q}%`);
+  try {
+    const { email, password } = await req.json();
+
+    const user = await db.get(
+      "SELECT * FROM users WHERE email = ?",
+      [email.trim()]
+    );
+
+    if (!user) {
+      return new Response(JSON.stringify({ error: "Пользователь не найден" }), { status: 401 });
     }
 
-    db.all(query, params, (err, rows) => {
-      if (err) {
-        console.error("SQLite error:", err);
-        resolve(
-          new Response(JSON.stringify({ error: "Ошибка при запросе к базе" }), { status: 500 })
-        );
-      } else {
-        resolve(new Response(JSON.stringify(rows), { status: 200 }));
-      }
+    if (user.password.trim() !== password.trim()) {
+      return new Response(JSON.stringify({ error: "Неверный пароль" }), { status: 401 });
+    }
+
+    const res = NextResponse.json({ success: true });
+
+    res.cookies.set("session", user.id, {
+      httpOnly: true,
+      path: "/",
     });
 
-    db.close();
-  });
+    return res;
+
+  } catch (err) {
+    console.error(err);
+    return new Response(JSON.stringify({ error: "Ошибка сервера" }), { status: 500 });
+  } finally {
+    await db.close();
+  }
 }

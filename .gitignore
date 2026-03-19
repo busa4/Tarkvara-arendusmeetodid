@@ -1,2 +1,9 @@
 .next
 node_modules
+favicon.ico
+next-end.d.ts
+postcss.config.mjs
+globals.css
+eslint.config.mjs
+next.config.ts
+public
