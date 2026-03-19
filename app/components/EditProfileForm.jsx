@@ -1,15 +1,24 @@
 "use client";
 import { useState } from "react";
 
-export default function EditProfileForm({ user }) {
+export default function EditProfileForm({ user, setUser }) {
   const [name, setName] = useState(user.name);
   const [email, setEmail] = useState(user.email);
   const [phone, setPhone] = useState(user.phone);
 
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    console.log({ name, email, phone });
-  };
+  const handleSubmit = async (e) => {
+  e.preventDefault();
+
+  const res = await fetch("/api/profile", {
+    method: "PUT",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ name, email, phone })
+  });
+
+  const data = await res.json();
+  console.log(data.user); 
+  setUser(data.user);     
+};
 
   return (
     <form onSubmit={handleSubmit} className="space-y-3">
