@@ -29,6 +29,6 @@
     ".next/types/**/*.ts",
     ".next/dev/types/**/*.ts",
     "**/*.mts"
-, "app/profile/page.jsx", "app/components/ProfileInfo.jsx", "app/components/EditProfileForm.jsx"  ],
+  ],
   "exclude": ["node_modules"]
 }
