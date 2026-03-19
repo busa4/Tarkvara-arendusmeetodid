@@ -26,7 +26,7 @@ export default async function RootLayout({ children }) {
         >
           <Link href="/">Home</Link>
           <Link href="/protected">Secret</Link>
-          
+          <Link href="/profile">Profile</Link>
           {!isAuth ? (
             <Link href="/login">Login</Link>
           ) : (
