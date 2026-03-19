@@ -8,25 +8,30 @@ async function openDB() {
   });
 }
 
-
-export async function GET() {
+export async function GET(req) {
   const db = await openDB();
   try {
-    const addresses = await db.all("SELECT * FROM addresses WHERE user_id = ?", [1]);
+    const userId = req.cookies.get("session")?.value; // читаем ID из cookie
+    if (!userId) return new Response(JSON.stringify({ error: "Не авторизован" }), { status: 401 });
+
+    const addresses = await db.all("SELECT * FROM addresses WHERE user_id = ?", [parseInt(userId)]);
     return new Response(JSON.stringify(addresses), { status: 200 });
   } finally {
     await db.close();
   }
 }
 
-export async function POST(request) {
-  const data = await request.json();
+export async function POST(req) {
+  const data = await req.json();
   const db = await openDB();
   try {
+    const userId = req.cookies.get("session")?.value;
+    if (!userId) return new Response(JSON.stringify({ error: "Не авторизован" }), { status: 401 });
+
     const result = await db.run(
       `INSERT INTO addresses (user_id, city, zip, district, street, house, apartment)
        VALUES (?, ?, ?, ?, ?, ?, ?)`,
-      [1, data.city, data.zip, data.district, data.street, data.house, data.apartment]
+      [parseInt(userId), data.city, data.zip, data.district, data.street, data.house, data.apartment]
     );
 
     const addr = await db.get("SELECT * FROM addresses WHERE id = ?", [result.lastID]);
@@ -36,15 +41,19 @@ export async function POST(request) {
   }
 }
 
-export async function PATCH(request) {
-  const data = await request.json();
+export async function PATCH(req) {
+  const data = await req.json();
   const db = await openDB();
   try {
+    const userId = req.cookies.get("session")?.value;
+    if (!userId) return new Response(JSON.stringify({ error: "Не авторизован" }), { status: 401 });
+
     await db.run(
       `UPDATE addresses SET city=?, zip=?, district=?, street=?, house=?, apartment=?
-       WHERE id=?`,
-      [data.city, data.zip, data.district, data.street, data.house, data.apartment, data.id]
+       WHERE id=? AND user_id=?`,
+      [data.city, data.zip, data.district, data.street, data.house, data.apartment, data.id, parseInt(userId)]
     );
+
     const updated = await db.get("SELECT * FROM addresses WHERE id = ?", [data.id]);
     return new Response(JSON.stringify(updated), { status: 200 });
   } finally {
@@ -52,11 +61,14 @@ export async function PATCH(request) {
   }
 }
 
-export async function DELETE(request) {
-  const { id } = await request.json();
+export async function DELETE(req) {
+  const { id } = await req.json();
   const db = await openDB();
   try {
-    await db.run("DELETE FROM addresses WHERE id = ?", [id]);
+    const userId = req.cookies.get("session")?.value;
+    if (!userId) return new Response(JSON.stringify({ error: "Не авторизован" }), { status: 401 });
+
+    await db.run("DELETE FROM addresses WHERE id = ? AND user_id = ?", [id, parseInt(userId)]);
     return new Response(JSON.stringify({ success: true }), { status: 200 });
   } finally {
     await db.close();
