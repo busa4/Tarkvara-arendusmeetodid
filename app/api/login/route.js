@@ -1,32 +1,37 @@
-import sqlite3 from "sqlite3";
+import { NextResponse } from "next/server";
+import sqlite3 from "better-sqlite3";
+import path from "path";
 
-export async function GET(request) {
-  const db = new sqlite3.Database("./autoosad.db");
+export async function POST(req) {
+  try {
+    const { login, password } = await req.json();
 
-  const { searchParams } = new URL(request.url);
-  let q = (searchParams.get("q") || "").trim();
+    const dbPath = path.resolve(process.cwd(), "autoosad.db");
+    const db = new sqlite3(dbPath);
 
-  return new Promise((resolve) => {
-    let query = "SELECT * FROM parts";
-    let params = [];
+    const user = db.prepare("SELECT * FROM users WHERE email = ? AND password = ?").get(login, password);
 
-    if (q.length > 0) {
-      // Подстрочный поиск для любых частей слова, регистр игнорируется
-      query += " WHERE name LIKE ? COLLATE NOCASE";
-      params.push(`%${q}%`);
+    if (user) {
+      const res = NextResponse.json({ ok: true });
+
+      res.cookies.set("session", "abc123", {
+        maxAge: 60 * 60 * 24, 
+        path: "/",
+        httpOnly: true 
+      });
+
+      return res;
+    } else {
+      return NextResponse.json(
+        { ok: false, error: "Vale e-mail või parool" }, 
+        { status: 401 }
+      );
     }
-
-    db.all(query, params, (err, rows) => {
-      if (err) {
-        console.error("SQLite error:", err);
-        resolve(
-          new Response(JSON.stringify({ error: "Ошибка при запросе к базе" }), { status: 500 })
-        );
-      } else {
-        resolve(new Response(JSON.stringify(rows), { status: 200 }));
-      }
-    });
-
-    db.close();
-  });
+  } catch (error) {
+    console.error("Database Login Error:", error);
+    return NextResponse.json(
+      { ok: false, error: "Andmebaasi viga" }, 
+      { status: 500 }
+    );
+  }
 }

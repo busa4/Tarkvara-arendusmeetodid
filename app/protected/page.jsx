@@ -1,6 +1,6 @@
 import { cookies } from "next/headers";
 import Link from "next/link";
-import sqlite3 from "sqlite3";
+import sqlite3 from "better-sqlite3"; 
 import path from "path";
 
 export default async function ProtectedPage() { 
@@ -21,8 +21,12 @@ export default async function ProtectedPage() {
 
   try {
     const dbPath = path.resolve(process.cwd(), "autoosad.db");
+    
     const db = new sqlite3(dbPath);
+    
     users = db.prepare("SELECT * FROM users").all();
+    
+    db.close();
   } catch (error) {
     dbError = error.message;
   }
@@ -31,30 +35,33 @@ export default async function ProtectedPage() {
     <div>
       <h1>Secret page 🔒</h1>
       
-      {dbError && <p style={{color: "red"}}>Database Error: {dbError}</p>}
+      {dbError && <p style={{color: "red"}}>Viga andmebaasiga: {dbError}</p>}
       
-      <p>Leitud kasutajaid: {users.length}</p>
-
-      <table border="1">
-        <thead>
-          <tr>
-            <th>ID</th>
-            <th>Name</th>
-            <th>Email</th>
-            <th>Role</th>
-          </tr>
-        </thead>
-        <tbody>
-          {users.map((user) => (
-            <tr key={user.id}>
-              <td>{user.id}</td>
-              <td>{user.name}</td>
-              <td>{user.email}</td>
-              <td>{user.role}</td>
+      <h2>Kasutajate nimekiri:</h2>
+      {users.length > 0 ? (
+        <table border="1">
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>Nimi</th>
+              <th>Email</th>
+              <th>Roll</th>
             </tr>
-          ))}
-        </tbody>
-      </table>
+          </thead>
+          <tbody>
+            {users.map((user) => (
+              <tr key={user.id}>
+                <td>{user.id}</td>
+                <td>{user.name}</td>
+                <td>{user.email}</td>
+                <td>{user.role}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      ) : (
+        <p>Kasutajaid ei leitud (või tabel on tühi).</p>
+      )}
 
       <br />
 
