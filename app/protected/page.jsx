@@ -1,5 +1,7 @@
 import { cookies } from "next/headers";
 import Link from "next/link";
+import sqlite3 from "sqlite3";
+import path from "path";
 
 export default async function ProtectedPage() { 
   const cookieStore = await cookies(); 
@@ -14,11 +16,49 @@ export default async function ProtectedPage() {
     );
   }
 
+  let users = [];
+  let dbError = null;
+
+  try {
+    const dbPath = path.resolve(process.cwd(), "autoosad.db");
+    const db = new sqlite3(dbPath);
+    users = db.prepare("SELECT * FROM users").all();
+  } catch (error) {
+    dbError = error.message;
+  }
+
   return (
     <div>
       <h1>Secret page 🔒</h1>
+      
+      {dbError && <p style={{color: "red"}}>Database Error: {dbError}</p>}
+      
+      <p>Leitud kasutajaid: {users.length}</p>
+
+      <table border="1">
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>Name</th>
+            <th>Email</th>
+            <th>Role</th>
+          </tr>
+        </thead>
+        <tbody>
+          {users.map((user) => (
+            <tr key={user.id}>
+              <td>{user.id}</td>
+              <td>{user.name}</td>
+              <td>{user.email}</td>
+              <td>{user.role}</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+
+      <br />
+
       <form action="/api/logout" method="POST">
-        <button type="submit">Olete siseloginud, siin on protected andmed</button>
         <button type="submit">Log out</button>
       </form>
     </div>
