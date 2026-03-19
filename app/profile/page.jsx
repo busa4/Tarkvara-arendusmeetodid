@@ -1,6 +1,5 @@
 "use client";
-import { useState } from "react";
-
+import { useState, useEffect } from "react";
 import ProfileInfo from "../components/ProfileInfo";
 import EditProfileForm from "../components/EditProfileForm";
 import AddressManager from "../components/AddressManager";
@@ -10,6 +9,8 @@ import OrderList from "../components/OrderList";
 export default function ProfilePage() {
   const [view, setView] = useState("info");
   const [showAllOrders, setShowAllOrders] = useState(false);
+  const [user, setUser] = useState(null);
+  const [orders, setOrders] = useState([]);
 
   useEffect(() => {
     fetch("/api/profile")
@@ -64,7 +65,7 @@ export default function ProfilePage() {
           </>
         )}
 
-        {view === "edit" && <EditProfileForm user={user} />}
+        {view === "edit" && <EditProfileForm user={user} setUser={setUser} />}
         {view === "address" && <AddressManager />}
         {view === "password" && <ChangePassword />}
       </div>

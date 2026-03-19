@@ -1,25 +1,49 @@
 "use client";
-import { useState } from "react";
+import { useState, useEffect  } from "react";
 
 export default function AddressManager() {
-  const [addresses, setAddresses] = useState([
-    { city: "Tallinn", zip: "10115", district: "Kesklinn", street: "Narva mnt", house: "25", apartment: "12" },
-    { city: "Tallinn", zip: "10245", district: "Mustamäe", street: "Tartu mnt", house: "10", apartment: "" }
-  ]);
+ const [addresses, setAddresses] = useState([]);
 
-  const handleChange = (index, field, value) => {
-    const updated = [...addresses];
-    updated[index][field] = value;
-    setAddresses(updated);
-  };
+    useEffect(() => {
+      fetch("/api/addresses")
+        .then(res => res.json())
+        .then(data => setAddresses(data));
+    }, []);
+ const handleChange = async (index, field, value) => {
+  const updated = [...addresses];
+  updated[index][field] = value;
+  setAddresses(updated);
 
-  const addAddress = () => {
-    setAddresses([...addresses, { city:"", zip:"", district:"", street:"", house:"", apartment:"" }]);
-  };
+  await fetch("/api/addresses", {
+    method: "PATCH",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(updated[index])
+  });
+};
 
-  const deleteAddress = (index) => {
-    setAddresses(addresses.filter((_, i) => i !== index));
-  };
+  const addAddress = async () => {
+  const newAddr = { city:"", zip:"", district:"", street:"", house:"", apartment:"" };
+
+  const res = await fetch("/api/addresses", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(newAddr)
+  });
+  const savedAddr = await res.json();
+
+
+  setAddresses([...addresses, savedAddr]);
+};
+
+ const deleteAddress = async (id) => {
+  await fetch("/api/addresses", {
+    method: "DELETE",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ id })
+  });
+
+  setAddresses(addresses.filter(a => a.id !== id));
+};
 
   return (
     <div className="space-y-4">
@@ -73,7 +97,7 @@ export default function AddressManager() {
           </div>
           <button
             className="px-3 py-1 bg-red-500 text-white rounded hover:bg-red-600 transition mt-2"
-            onClick={() => deleteAddress(index)}
+            onClick={() => deleteAddress(addr.id)}
           >
             Kustuta aadress
           </button>
