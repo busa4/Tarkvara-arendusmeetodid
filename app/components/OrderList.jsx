@@ -11,10 +11,10 @@ export default function OrderList({ orders }) {
             {items.map((i, idx) => (
               <div key={idx} className="flex justify-between">
                 <span>{i.name || `Toode ID: ${i.part_id}`}</span>
-                <span>{i.quantity} × ${i.price || "?"}</span>
+                <span>{i.quantity} × €{i.price || "?"}</span>
               </div>
             ))}
-            <div className="font-semibold mt-1">Kokku: ${order.total_price}</div>
+            <div className="font-semibold mt-1">Kokku: €{order.total_price}</div>
           </div>
         );
       })}
